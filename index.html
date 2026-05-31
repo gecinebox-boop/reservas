@@ -1,10 +1,9 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
-<head>
+<html lang="pt-BR"><head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title id="pageTitle">Reservas — Dia dos Namorados</title>
-  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&amp;family=DM+Sans:wght@400;500;600&amp;display=swap" rel="stylesheet">
   <style>
     :root {
       --papel: #ffffff;
@@ -155,7 +154,70 @@
     .modal-btn.secondary { background: #e2e8f0; color: var(--tinta); }
     .modal-btn.secondary:hover { background: #cbd5e1; }
 
-    /* Seção de pagamento no formulário */
+    /* ─── Salvar Arquivo destaque ────────────────────────────────────────── */
+    .rail-btn.btn-salvar-arq {
+      position: relative;
+      color: #fbbf24;
+    }
+    .rail-btn.btn-salvar-arq:hover { background: #1e293b; color: #fde68a; }
+    .rail-btn.btn-salvar-arq.pendente { color: #f59e0b; }
+    .rail-btn.btn-salvar-arq.pendente::after {
+      content: '';
+      position: absolute;
+      top: 8px; right: 10px;
+      width: 7px; height: 7px;
+      border-radius: 50%;
+      background: #f59e0b;
+      box-shadow: 0 0 0 2px var(--rail-bg);
+    }
+    .rail.open .rail-btn.btn-salvar-arq.pendente::after { right: 14px; }
+
+    /* Barra de status de arquivo */
+    .file-status-bar {
+      display: none; align-items: center; gap: 8px;
+      background: #fffbeb; border: 1px solid #fde68a;
+      border-radius: 6px; padding: 7px 10px;
+      font-size: 0.75rem; color: #92400e; margin-bottom: 2px;
+    }
+    .file-status-bar.show { display: flex; }
+    .file-status-bar svg { flex-shrink: 0; }
+    .file-status-bar .fsb-btn {
+      margin-left: auto; padding: 3px 10px; border-radius: 4px; border: none;
+      cursor: pointer; font-size: 0.72rem; font-family: 'DM Sans', system-ui, sans-serif;
+      font-weight: 600; background: #f59e0b; color: #fff;
+    }
+    .file-status-bar .fsb-btn:hover { background: #d97706; }
+    .mesa-item {
+      display: flex; align-items: center; gap: 8px;
+      background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 7px;
+      padding: 8px 10px; cursor: default; user-select: none;
+      transition: background 0.15s, border-color 0.15s, box-shadow 0.15s;
+    }
+    .mesa-item:hover { background: #fff; border-color: #cbd5e1; box-shadow: 0 1px 4px rgba(0,0,0,0.06); }
+    .mesa-item.dragging { opacity: 0.4; }
+    .mesa-item.drag-over { border-color: var(--acento); background: #fff5f5; }
+    .mesa-item.editing-row { background: #fff7ed; border-color: #fed7aa; }
+
+    .mesa-drag-handle {
+      cursor: grab; color: #cbd5e1; flex-shrink: 0; display: flex; align-items: center;
+      padding: 2px;
+    }
+    .mesa-drag-handle:active { cursor: grabbing; }
+    .mesa-drag-handle:hover { color: #94a3b8; }
+
+    .mesa-label { flex: 1; font-size: 0.875rem; color: var(--tinta); font-weight: 500; }
+    .mesa-idx   { font-size: 0.7rem; color: #94a3b8; background: #f1f5f9; border-radius: 4px; padding: 1px 6px; flex-shrink: 0; }
+
+    .mesa-actions { display: flex; gap: 4px; }
+    .mesa-action-btn {
+      background: none; border: none; cursor: pointer; border-radius: 5px;
+      width: 26px; height: 26px; display: flex; align-items: center; justify-content: center;
+      color: #94a3b8; transition: 0.15s;
+    }
+    .mesa-action-btn:hover.edit { background: #dbeafe; color: #1d4ed8; }
+    .mesa-action-btn:hover.del  { background: #fee2e2; color: #dc2626; }
+
+
     .pgto-section {
       border-top: 1px dashed #cbd5e1; padding-top: 10px; margin-top: 4px;
       display: flex; flex-direction: column; gap: 8px;
@@ -182,8 +244,22 @@
     .badge.c { background: #dbeafe; color: #1d4ed8; }
     .badge.p { background: #dcfce7; color: #15803d; }
 
-    .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-    .form-full { grid-column: span 2; }
+    /* ─── Form layout ────────────────────────────────────────────────────── */
+    .form-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+    .form-full { grid-column: 1 / -1; }
+    /* linha 1: Nome (full width) */
+    .fg-nome   { grid-column: 1 / -1; }
+    /* linha 3: Horário | Mesa (flex) | Nº */
+    .fg-hmn    { grid-column: 1 / -1; display: grid; grid-template-columns: 1fr 1fr 60px; gap: 10px; }
+    /* linha 5: Observações (full width) */
+    .fg-obs    { grid-column: 1 / -1; }
+
+    #numMesa { text-align: center; font-weight: 700; font-size: 1rem; letter-spacing: 0.04em; }
+    #numMesa:focus { border-color: var(--acento); box-shadow: 0 0 0 3px rgba(192,57,43,0.08); }
     .campo { display: flex; flex-direction: column; gap: 4px; }
     .campo label { font-size: 0.72rem; font-weight: 600; color: var(--secundario); letter-spacing: 0.03em; text-transform: uppercase; }
     .campo input, .campo select, .campo textarea {
@@ -285,10 +361,11 @@
     }
     th:nth-child(1) { width: 45%; } /* Nome/Tel */
     th:nth-child(2) { width: 13%; } /* Data/Hora */
-    th:nth-child(3) { width: 13%; } /* Mesa */
-    th:nth-child(4) { width: 5%;  } /* Pess */
-    th:nth-child(5) { width: 11%; } /* Status */
-    th:nth-child(6) { width: 4%;  } /* Ações */
+    th:nth-child(3) { width: 12%; } /* Mesa */
+    th:nth-child(4) { width: 5%;  } /* Nº Mesa */
+    th:nth-child(5) { width: 5%;  } /* Pess */
+    th:nth-child(6) { width: 11%; } /* Status */
+    th:nth-child(7) { width: 4%;  } /* Ações */
     th:hover { filter: brightness(1.1); }
     th .sort-arrow { opacity: 0.5; margin-left: 3px; }
     th.sorted .sort-arrow { opacity: 1; }
@@ -364,9 +441,10 @@
       /* Redistribui colunas sem a coluna Ações */
       th:nth-child(1) { width: 48% !important; } /* Nome/Tel */
       th:nth-child(2) { width: 16% !important; } /* Data/Hora */
-      th:nth-child(3) { width: 16% !important; } /* Mesa */
-      th:nth-child(4) { width: 7%  !important; } /* Pess */
-      th:nth-child(5) { width: 13% !important; } /* Status */
+      th:nth-child(3) { width: 14% !important; } /* Mesa */
+      th:nth-child(4) { width: 6%  !important; } /* Nº Mesa */
+      th:nth-child(5) { width: 7%  !important; } /* Pess */
+      th:nth-child(6) { width: 13% !important; } /* Status */
       th:nth-child(6) { display: none !important; }
 
       /* Garante quebra de texto na impressão */
@@ -412,39 +490,43 @@ var o=[];var l=Array.isArray(e);for(f=n.s.c;f<=n.e.c;++f)s[f]=ya(f);for(var c=n.
     <aside class="rail" id="rail">
       <div class="rail-header">
         <button class="rail-toggle" onclick="toggleRail()" title="Expandir menu">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"></path></svg>
         </button>
       </div>
       <nav class="rail-nav">
         <button class="rail-btn" onclick="resetForm()" title="Nova Reserva">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"></path></svg>
           <span>Nova Reserva</span>
         </button>
         <button class="rail-btn" onclick="exportCSV()" title="Baixar CSV">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"></path></svg>
           <span>Baixar CSV</span>
         </button>
         <button class="rail-btn" onclick="window.print()" title="Imprimir">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9V2h12v7M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2M6 14h12v8H6z"/></svg>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9V2h12v7M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2M6 14h12v8H6z"></path></svg>
           <span>Imprimir</span>
         </button>
-        <button class="rail-btn" onclick="salvarArquivo()" title="Salvar arquivo com dados">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
-          <span>Salvar Arquivo</span>
+        <button class="rail-btn btn-salvar-arq pendente" id="btnSalvarArq" onclick="salvarArquivo()" title="Salvar arquivo com dados (Ctrl+S)">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path><polyline points="17 21 17 13 7 13 7 21"></polyline><polyline points="7 3 7 8 15 8"></polyline></svg>
+          <span id="btnSalvarArqLabel">Salvar Arquivo</span>
         </button>
-        <button class="rail-btn" onclick="driveLogin()" title="Sincronizar com Google Drive" id="btnDrive">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 12h-6l-2 3H10l-2-3H2"/><path d="M5.45 5.11L2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"/></svg>
-          <span id="btnDriveLabel">Google Drive</span>
+        <button class="rail-btn" onclick="ghShowModal()" title="Sincronizar com GitHub" id="btnGH">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"></path></svg>
+          <span id="btnGHLabel">✓ GitHub</span>
         </button>
         <button class="rail-btn" onclick="document.getElementById('importFile').click()" title="Importar CSV/XLS/XLSX">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M17 8l-5-5-5 5M12 3v12"/></svg>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M17 8l-5-5-5 5M12 3v12"></path></svg>
           <span>Importar</span>
         </button>
         <input type="file" id="importFile" accept=".csv,.xls,.xlsx" style="display:none" onchange="importFile(event)">
+        <button class="rail-btn" onclick="openMesasModal()" title="Gerenciar Mesas">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path><circle cx="12" cy="16" r="1" fill="currentColor"></circle></svg>
+          <span>Mesas</span>
+        </button>
       </nav>
       <div class="color-dropdown">
         <button class="color-trigger" onclick="toggleColors()" title="Paleta de cores">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 2v20"/></svg>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><path d="M12 2v20"></path></svg>
           <span>Paleta</span>
         </button>
         <div class="color-panel" id="colorPanel">
@@ -461,12 +543,19 @@ var o=[];var l=Array.isArray(e);for(f=n.s.c;f<=n.e.c;++f)s[f]=ya(f);for(var c=n.
       <div class="editor" id="editorPanel">
         <!-- Banner de rascunho recuperado -->
         <div class="draft-bar" id="draftBar">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="15" height="15"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="15" height="15"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path></svg>
           <span>Rascunho não salvo encontrado.</span>
           <div class="draft-bar-actions">
             <button class="draft-btn restore" onclick="restoreDraft()">Restaurar</button>
             <button class="draft-btn discard" onclick="discardDraft()">Descartar</button>
           </div>
+        </div>
+
+        <!-- Banner de dados não salvos no arquivo -->
+        <div class="file-status-bar show" id="fileStatusBar">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="15" height="15"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path><polyline points="17 21 17 13 7 13 7 21"></polyline><polyline points="7 3 7 8 15 8"></polyline></svg>
+          <span id="fileStatusMsg">Há dados não salvos no arquivo.</span>
+          <button class="fsb-btn" onclick="salvarArquivo()">💾 Salvar agora</button>
         </div>
 
         <div class="editor-header">
@@ -475,35 +564,54 @@ var o=[];var l=Array.isArray(e);for(f=n.s.c;f<=n.e.c;++f)s[f]=ya(f);for(var c=n.
             <span class="autosave-dot" id="autosaveDot" title="Rascunho salvo automaticamente"></span>
           </div>
           <div class="event-title-wrap">
-            <svg viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="2" width="13" height="13"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+            <svg viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="2" width="13" height="13"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
             <input class="event-title-input" id="eventTitleInput" type="text" value="Dia dos Namorados" placeholder="Nome do evento" title="Clique para editar o título do evento">
           </div>
-          <div class="status-summary" id="statusSummary"></div>
+          <div class="status-summary" id="statusSummary">
+        <span class="badge r">Reservas: 10</span>
+        <span class="badge c">Confirmações: 0</span>
+        <span class="badge p">Pagamentos: 0</span></div>
         </div>
 
         <form id="reservaForm">
           <input type="hidden" id="editId">
           <div class="form-grid">
-            <div class="campo form-full"><label>Nome</label><input type="text" id="nome" required autocomplete="off"></div>
-            <div class="campo"><label>Telefone</label><input type="tel" id="telefone" required autocomplete="off" placeholder="(00) 00000-0000"></div>
-            <div class="campo"><label>Data</label><input type="date" id="data" required></div>
-            <div class="campo"><label>Horário</label>
-              <select id="horario" required>
-                <option value="">--</option>
-                <option>18:00</option><option>18:30</option><option>19:00</option>
-                <option>19:30</option><option>20:00</option><option>20:30</option>
-                <option>21:00</option><option>21:30</option><option>22:00</option>
-              </select>
+
+            <!-- linha 1: Nome -->
+            <div class="campo fg-nome"><label>Nome</label><input type="text" id="nome" required="" autocomplete="off"></div>
+
+            <!-- linha 2: Telefone | Data -->
+            <div class="campo"><label>Telefone</label><input type="tel" id="telefone" required="" autocomplete="off" placeholder="(00) 00000-0000"></div>
+            <div class="campo"><label>Data</label><input type="date" id="data" required=""></div>
+
+            <!-- linha 3: Horário | Mesa | Nº -->
+            <div class="fg-hmn">
+              <div class="campo"><label>Horário</label>
+                <select id="horario" required="">
+                  <option value="">--</option>
+                  <option>18:00</option><option>18:30</option><option>19:00</option>
+                  <option>19:30</option><option>20:00</option><option>20:30</option>
+                  <option>21:00</option><option>21:30</option><option>22:00</option>
+                </select>
+              </div>
+              <div class="campo" style="position:relative;">
+                <label style="display:flex;align-items:center;justify-content:space-between;">
+                  Mesa
+                  <button type="button" onclick="openMesasModal()" title="Gerenciar mesas" style="background:none;border:none;cursor:pointer;color:var(--secundario);font-size:0.7rem;display:flex;align-items:center;gap:3px;padding:0;font-family:inherit;font-weight:600;">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="11" height="11"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+                    editar
+                  </button>
+                </label>
+                <select id="mesa" required=""><option value="">--</option><option value="Janela">Janela</option><option value="Varanda">Varanda</option><option value="Jardim">Jardim</option><option value="Reservada">Reservada</option><option value="Salão">Salão</option><option value="Terraço">Terraço</option></select>
+              </div>
+              <div class="campo"><label>Nº</label>
+                <input type="text" id="numMesa" autocomplete="off" placeholder="—" maxlength="6">
+              </div>
             </div>
-            <div class="campo"><label>Mesa</label>
-              <select id="mesa" required>
-                <option value="">--</option>
-                <option>Janela</option><option>Varanda</option><option>Jardim</option>
-                <option>Reservada</option><option>Salão</option><option>Terraço</option>
-              </select>
-            </div>
+
+            <!-- linha 4: Pessoas | Status -->
             <div class="campo"><label>Pessoas</label>
-              <select id="pessoas" required>
+              <select id="pessoas" required="">
                 <option value="">--</option>
                 <option>1</option><option>2</option><option>3</option>
                 <option>4</option><option>5</option><option>6</option>
@@ -514,13 +622,16 @@ var o=[];var l=Array.isArray(e);for(f=n.s.c;f<=n.e.c;++f)s[f]=ya(f);for(var c=n.
                 <option>Reserva</option><option>Confirmação</option><option>Pagamento</option>
               </select>
             </div>
-            <div class="campo form-full"><label>Observações</label><textarea id="observacoes"></textarea></div>
+
+            <!-- linha 5: Observações -->
+            <div class="campo fg-obs"><label>Observações</label><textarea id="observacoes"></textarea></div>
+
           </div>
 
           <!-- Seção de Pagamento (só no painel, não imprime) -->
           <div class="pgto-section">
             <div class="pgto-title">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="13" height="13"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="13" height="13"><rect x="1" y="4" width="22" height="16" rx="2"></rect><line x1="1" y1="10" x2="23" y2="10"></line></svg>
               Pagamento
             </div>
             <div class="form-grid">
@@ -532,7 +643,7 @@ var o=[];var l=Array.isArray(e);for(f=n.s.c;f<=n.e.c;++f)s[f]=ya(f);for(var c=n.
           </div>
 
           <div class="conflict-warn" id="conflictWarn">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="15" height="15" style="flex-shrink:0;margin-top:1px"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="15" height="15" style="flex-shrink:0;margin-top:1px"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
             <span id="conflictMsg">Atenção: conflito de mesa detectado.</span>
           </div>
 
@@ -567,59 +678,238 @@ var o=[];var l=Array.isArray(e);for(f=n.s.c;f<=n.e.c;++f)s[f]=ya(f);for(var c=n.
             <h1 id="a4Title">Reservas — Dia dos Namorados</h1>
             <p id="a4Subtitle">preview A4 · 210×297mm</p>
           </div>
-          <div class="a4-summary" id="a4Summary"></div>
+          <div class="a4-summary" id="a4Summary">
+        <span class="summary-pill r">Reservas: 10</span>
+        <span class="summary-pill c">Confirmações: 0</span>
+        <span class="summary-pill p">Pagamentos: 0</span></div>
           <table>
             <thead>
               <tr>
                 <th onclick="setSort('nome')" title="Ordenar por nome">Nome / Tel <span class="sort-arrow">↕</span></th>
                 <th onclick="setSort('data')" title="Ordenar por data">Data / Hora <span class="sort-arrow">↕</span></th>
                 <th>Mesa</th>
+                <th style="width:5%;">Nº</th>
                 <th>Pess.</th>
                 <th onclick="setSort('status')" title="Ordenar por status">Status <span class="sort-arrow">↕</span></th>
                 <th class="no-print" style="width:4%"></th>
               </tr>
             </thead>
-            <tbody id="tableBody"></tbody>
+            <tbody id="tableBody"><tr data-id="80c45557-b321-4beb-8016-5579da8e0ff8" title="Duplo clique para editar">
+            <td><span style="display:block">Adrian de Moura Patricio</span><span class="cell-sub"></span></td>
+            <td><span style="display:block"></span><span class="cell-sub"></span></td>
+            <td></td>
+            <td style="text-align:center;font-weight:600;font-size:0.85rem;"></td>
+            <td></td>
+            <td><span class="tag r">Reserva</span></td>
+            <td class="actions-cell no-print">
+              <button class="btn-del-x" title="Excluir reserva">×</button>
+            </td></tr><tr data-id="1c2d1217-b90f-40a0-8a6d-23a164c324b2" title="Duplo clique para editar">
+            <td><span style="display:block">Elias Bragante de Carvalho</span><span class="cell-sub"></span></td>
+            <td><span style="display:block"></span><span class="cell-sub"></span></td>
+            <td></td>
+            <td style="text-align:center;font-weight:600;font-size:0.85rem;"></td>
+            <td></td>
+            <td><span class="tag r">Reserva</span></td>
+            <td class="actions-cell no-print">
+              <button class="btn-del-x" title="Excluir reserva">×</button>
+            </td></tr><tr data-id="9ab1e6a1-d0e8-460e-a079-a78bdadbaad1" title="Duplo clique para editar">
+            <td><span style="display:block">Emanuel dos Santos Matias</span><span class="cell-sub"></span></td>
+            <td><span style="display:block"></span><span class="cell-sub"></span></td>
+            <td></td>
+            <td style="text-align:center;font-weight:600;font-size:0.85rem;"></td>
+            <td></td>
+            <td><span class="tag r">Reserva</span></td>
+            <td class="actions-cell no-print">
+              <button class="btn-del-x" title="Excluir reserva">×</button>
+            </td></tr><tr data-id="1feff21a-de9f-4c31-8be6-e93357f94ce4" title="Duplo clique para editar">
+            <td><span style="display:block">Guilherme Teixeira Pinto</span><span class="cell-sub"></span></td>
+            <td><span style="display:block"></span><span class="cell-sub"></span></td>
+            <td></td>
+            <td style="text-align:center;font-weight:600;font-size:0.85rem;"></td>
+            <td></td>
+            <td><span class="tag r">Reserva</span></td>
+            <td class="actions-cell no-print">
+              <button class="btn-del-x" title="Excluir reserva">×</button>
+            </td></tr><tr data-id="d9c08637-1640-49ea-b0a9-1f7e22331ba2" title="Duplo clique para editar">
+            <td><span style="display:block">Mauricelia Barroso de Araujo</span><span class="cell-sub"></span></td>
+            <td><span style="display:block"></span><span class="cell-sub"></span></td>
+            <td></td>
+            <td style="text-align:center;font-weight:600;font-size:0.85rem;"></td>
+            <td></td>
+            <td><span class="tag r">Reserva</span></td>
+            <td class="actions-cell no-print">
+              <button class="btn-del-x" title="Excluir reserva">×</button>
+            </td></tr><tr data-id="ace23f5b-2d82-4fbd-9142-19a730efe9cd" title="Duplo clique para editar">
+            <td><span style="display:block">Joao A Castelo Branco</span><span class="cell-sub"></span></td>
+            <td><span style="display:block"></span><span class="cell-sub"></span></td>
+            <td></td>
+            <td style="text-align:center;font-weight:600;font-size:0.85rem;"></td>
+            <td></td>
+            <td><span class="tag r">Reserva</span></td>
+            <td class="actions-cell no-print">
+              <button class="btn-del-x" title="Excluir reserva">×</button>
+            </td></tr><tr data-id="a60455f6-158d-488a-b0d2-f5bd56e2e2d3" title="Duplo clique para editar">
+            <td><span style="display:block">Raiene Ramos Magalhaes</span><span class="cell-sub"></span></td>
+            <td><span style="display:block"></span><span class="cell-sub"></span></td>
+            <td></td>
+            <td style="text-align:center;font-weight:600;font-size:0.85rem;"></td>
+            <td></td>
+            <td><span class="tag r">Reserva</span></td>
+            <td class="actions-cell no-print">
+              <button class="btn-del-x" title="Excluir reserva">×</button>
+            </td></tr><tr data-id="897fb179-1a21-4f29-8f10-99ec81065e85" title="Duplo clique para editar">
+            <td><span style="display:block">Jose Guilherme Goncalves Lopes</span><span class="cell-sub"></span></td>
+            <td><span style="display:block"></span><span class="cell-sub"></span></td>
+            <td></td>
+            <td style="text-align:center;font-weight:600;font-size:0.85rem;"></td>
+            <td></td>
+            <td><span class="tag r">Reserva</span></td>
+            <td class="actions-cell no-print">
+              <button class="btn-del-x" title="Excluir reserva">×</button>
+            </td></tr><tr data-id="8dbd0517-efe6-4170-9a8e-9e539b52b46a" title="Duplo clique para editar" class="conflict">
+            <td><span style="display:block">Matheus Alysson Bezerra de Sousa</span><span class="cell-sub">(88) 98212-2727</span></td>
+            <td><span style="display:block">12/06/2026</span><span class="cell-sub">19:00</span></td>
+            <td>Varanda ⚠️</td>
+            <td style="text-align:center;font-weight:600;font-size:0.85rem;"></td>
+            <td>2</td>
+            <td><span class="tag r">Reserva</span></td>
+            <td class="actions-cell no-print">
+              <button class="btn-del-x" title="Excluir reserva">×</button>
+            </td></tr><tr data-id="98fcfda9-a360-4e12-a00a-923d6bfb47c4" title="Duplo clique para editar" class="conflict">
+            <td><span style="display:block">DYELYSON VICENTE BARROS</span><span class="cell-sub">(88) 99689-0984</span></td>
+            <td><span style="display:block">12/06/2026</span><span class="cell-sub">19:00</span></td>
+            <td>Varanda ⚠️</td>
+            <td style="text-align:center;font-weight:600;font-size:0.85rem;"></td>
+            <td>2</td>
+            <td><span class="tag r">Reserva</span></td>
+            <td class="actions-cell no-print">
+              <button class="btn-del-x" title="Excluir reserva">×</button>
+            </td></tr></tbody>
           </table>
           <div class="a4-footer">
-            <span id="footerInfo">Total: 0 reservas</span>
-            <span id="footerDate"></span>
+            <span id="footerInfo">Exibindo 1–10 de 10 reservas</span>
+            <span id="footerDate">31 de maio de 2026</span>
           </div>
         </div>
 
         <!-- Paginação -->
-        <div class="pagination" id="paginationBar">
+        <div class="pagination" id="paginationBar" style="display: none;">
           <span id="pgInfo">Página 1 de 1</span>
           <div class="pagination-btns">
-            <button class="pg-btn" id="pgPrev" onclick="changePage(-1)" disabled>← Anterior</button>
-            <button class="pg-btn" id="pgNext" onclick="changePage(1)" disabled>Próxima →</button>
+            <button class="pg-btn" id="pgPrev" onclick="changePage(-1)" disabled="">← Anterior</button>
+            <button class="pg-btn" id="pgNext" onclick="changePage(1)" disabled="">Próxima →</button>
           </div>
         </div>
       </div>
     </div>
   </div>
 
-  <!-- Modal Google Drive -->
-  <div class="modal-overlay" id="driveModal" onclick="if(event.target===this)this.classList.remove('show')" style="pointer-events:none;opacity:0;transition:opacity 0.2s;">
-    <div class="modal">
+  <!-- Modal Gerenciar Mesas -->
+  <div class="modal-overlay" id="mesasModal" onclick="if(event.target===this)closeMesasModal()" style="pointer-events:none;opacity:0;transition:opacity 0.2s;">
+    <div class="modal" style="width:460px;max-width:95vw;">
       <div class="modal-title">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><path d="M22 12h-6l-2 3H10l-2-3H2"/><path d="M5.45 5.11L2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"/></svg>
-        Google Drive
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><rect x="3" y="3" width="7" height="7" rx="1"></rect><rect x="14" y="3" width="7" height="7" rx="1"></rect><rect x="3" y="14" width="7" height="7" rx="1"></rect><rect x="14" y="14" width="7" height="7" rx="1"></rect></svg>
+        Gerenciar Mesas
       </div>
-      <div id="driveStatus" style="font-size:0.85rem;color:#475569;margin-bottom:12px;">Conecte sua conta Google para sincronizar os dados automaticamente.</div>
-      <div class="modal-footer">
-        <button class="modal-btn secondary" onclick="document.getElementById('driveModal').classList.remove('show');document.getElementById('driveModal').style.cssText='pointer-events:none;opacity:0;transition:opacity 0.2s;'">Fechar</button>
-        <button class="modal-btn primary" id="drivePrimaryBtn" onclick="driveAction()">🔑 Entrar com Google</button>
+
+      <!-- Adicionar / Editar -->
+      <div style="display:flex;gap:8px;margin-bottom:14px;">
+        <input id="mesaInput" type="text" placeholder="Nome da mesa…" maxlength="40" style="flex:1;padding:8px 10px;border:1px solid #cbd5e1;border-radius:6px;font-size:0.88rem;font-family:inherit;outline:none;" onkeydown="if(event.key==='Enter'){event.preventDefault();confirmMesaEdit();}" onfocus="this.style.borderColor='var(--acento)'" onblur="this.style.borderColor='#cbd5e1'">
+        <button class="modal-btn primary" id="btnConfirmMesa" onclick="confirmMesaEdit()" style="white-space:nowrap;">＋ Adicionar</button>
+        <button class="modal-btn secondary" id="btnCancelEdit" onclick="cancelMesaEdit()" style="display:none;">Cancelar</button>
+      </div>
+
+      <!-- Lista de mesas (drag-reorder) -->
+      <div id="mesasList" style="display:flex;flex-direction:column;gap:6px;max-height:340px;overflow-y:auto;padding-right:2px;">
+        <!-- items rendered by JS -->
+      </div>
+
+      <div id="mesasEmpty" style="display:none;text-align:center;color:#94a3b8;font-size:0.82rem;padding:24px 0;">
+        Nenhuma mesa cadastrada. Adicione acima.
+      </div>
+
+      <div style="margin-top:14px;padding-top:10px;border-top:1px solid #f1f5f9;display:flex;align-items:center;justify-content:space-between;">
+        <span id="mesasCount" style="font-size:0.75rem;color:#94a3b8;"></span>
+        <div style="display:flex;gap:8px;">
+          <button class="modal-btn secondary" onclick="resetMesasPadrao()" title="Restaurar lista padrão" style="font-size:0.78rem;">↺ Padrão</button>
+          <button class="modal-btn secondary" onclick="closeMesasModal()">Fechar</button>
+        </div>
       </div>
     </div>
   </div>
 
-  <div class="toast" id="toast"></div>
+  <!-- Modal GitHub Sync -->
+  <div class="modal-overlay show" id="ghModal" onclick="if(event.target===this)ghCloseModal()" style="pointer-events: all; opacity: 1; transition: opacity 0.2s;">
+    <div class="modal" style="width:420px;max-width:95vw;">
+      <div class="modal-title">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"></path></svg>
+        Sincronizar com GitHub
+      </div>
+
+      <div id="ghStatusRow" style="margin-bottom:12px;font-size:0.83rem;"><span style="color:#15803d;font-weight:600;">✓ Token configurado</span> — pronto para sincronizar.</div>
+
+      <!-- Token field -->
+      <div id="ghTokenSection" style="display: none;">
+        <div class="campo" style="margin-bottom:10px;">
+          <label style="font-size:0.72rem;font-weight:600;color:#64748b;text-transform:uppercase;letter-spacing:0.03em;">Personal Access Token (PAT)</label>
+          <div style="display:flex;gap:6px;">
+            <input type="password" id="ghTokenInput" placeholder="ghp_xxxxxxxxxxxxxxxxxxxx" style="flex: 1 1 0%; padding: 8px; border: 1px solid rgb(203, 213, 225); border-radius: 6px; font-size: 0.85rem; font-family: inherit; outline: none;" onfocus="this.style.borderColor='#c0392b'" onblur="this.style.borderColor='#cbd5e1'">
+            <button class="modal-btn secondary" onclick="ghToggleToken()" id="ghEyeBtn" title="Mostrar/ocultar token" style="padding:8px 10px;">👁</button>
+          </div>
+        </div>
+        <details style="font-size:0.75rem;color:#64748b;line-height:1.7;background:#f8fafc;border-radius:6px;padding:8px 10px;margin-bottom:10px;">
+          <summary style="cursor:pointer;font-weight:600;color:#334155;">Como gerar o token (1 vez só)</summary>
+          <div style="margin-top:6px;">
+            1. Acesse <a href="https://github.com/settings/tokens/new" target="_blank" style="color:#c0392b;">github.com/settings/tokens/new</a><br>
+            2. Em <b>Note</b> coloque: <code>reservas-app</code><br>
+            3. Em <b>Expiration</b> escolha: <b>No expiration</b><br>
+            4. Em <b>Select scopes</b> marque apenas: <b>✅ repo</b><br>
+            5. Clique <b>Generate token</b> e copie o token<br>
+            6. Cole aqui e clique <b>Salvar token</b>
+          </div>
+        </details>
+        <div style="display:flex;gap:8px;">
+          <button class="modal-btn primary" onclick="ghSaveToken()" style="flex:1;">🔑 Salvar token</button>
+          <button class="modal-btn secondary" onclick="ghCloseModal()">Cancelar</button>
+        </div>
+      </div>
+
+      <!-- Connected state -->
+      <div id="ghConnectedSection" style="display: block;">
+        <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:14px;">
+          <div class="conn-row">
+            <div class="conn-icon ok">✓</div>
+            <div class="conn-label">Token configurado</div>
+            <button onclick="ghClearToken()" style="background:none;border:none;cursor:pointer;font-size:0.75rem;color:#94a3b8;font-family:inherit;">Remover</button>
+          </div>
+          <div class="conn-row" id="ghRepoRow">
+            <div class="conn-icon ok">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87"></path></svg>
+            </div>
+            <div class="conn-label" style="font-size:0.82rem;">gecinebox-boop/reservas → index.html</div>
+          </div>
+          <div class="conn-row" id="ghLastSaveRow" style="display:none;">
+            <div class="conn-icon ok">🕐</div>
+            <div class="conn-label" id="ghLastSaveLabel" style="font-size:0.78rem;color:#64748b;"></div>
+          </div>
+        </div>
+        <div style="display:flex;gap:8px;">
+          <button class="modal-btn primary" onclick="ghPush()" style="flex:1;" id="ghPushBtn" disabled="">⏳ Enviando…</button>
+          <button class="modal-btn secondary" onclick="ghPull()" id="ghPullBtn">⬇ Carregar</button>
+          <button class="modal-btn secondary" onclick="ghCloseModal()">Fechar</button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <div class="toast success" id="toast">✅ 10 nova(s) entrada(s) criada(s)</div>
 
   <script>
     // ─── Configuração ────────────────────────────────────────────────────────
     // Dados embutidos no próprio arquivo (atualizados ao clicar "Salvar Arquivo")
-    const DADOS_EMBUTIDOS = /*DADOS_JSON*/null/*FIM_DADOS*/;
+    const DADOS_EMBUTIDOS = /*DADOS_JSON*/[{"id":"8dbd0517-efe6-4170-9a8e-9e539b52b46a","nome":"Matheus Alysson Bezerra de Sousa","telefone":"(88) 98212-2727","data":"2026-06-12","horario":"19:00","mesa":"Varanda","pessoas":"2","status":"Reserva","observacoes":"","nomePg":"Matheus Alysson Bezerra de Sousa","valorPg":"200","dataPg":"2026-05-27","horaPg":""},{"id":"98fcfda9-a360-4e12-a00a-923d6bfb47c4","nome":"DYELYSON VICENTE BARROS","telefone":"(88) 99689-0984","data":"2026-06-12","horario":"19:00","mesa":"Varanda","pessoas":"2","status":"Reserva","observacoes":"","nomePg":"DYELYSON VICENTE BARROS","valorPg":"200","dataPg":"2026-05-27","horaPg":""},{"id":"80c45557-b321-4beb-8016-5579da8e0ff8","nome":"Adrian de Moura Patricio","telefone":"","data":"","horario":"","mesa":"","pessoas":"","status":"Reserva","observacoes":"","nomePg":"Adrian de Moura Patricio","valorPg":"200","dataPg":"2026-05-27","horaPg":"31/12/1899"},{"id":"1c2d1217-b90f-40a0-8a6d-23a164c324b2","nome":"Elias Bragante de Carvalho","telefone":"","data":"","horario":"","mesa":"","pessoas":"","status":"Reserva","observacoes":"","nomePg":"Elias Bragante de Carvalho","valorPg":"200","dataPg":"2026-05-27","horaPg":"31/12/1899"},{"id":"9ab1e6a1-d0e8-460e-a079-a78bdadbaad1","nome":"Emanuel dos Santos Matias","telefone":"","data":"","horario":"","mesa":"","pessoas":"","status":"Reserva","observacoes":"","nomePg":"Emanuel dos Santos Matias","valorPg":"200","dataPg":"2026-05-27","horaPg":"31/12/1899"},{"id":"1feff21a-de9f-4c31-8be6-e93357f94ce4","nome":"Guilherme Teixeira Pinto","telefone":"","data":"","horario":"","mesa":"","pessoas":"","status":"Reserva","observacoes":"","nomePg":"Guilherme Teixeira Pinto","valorPg":"200","dataPg":"2026-05-27","horaPg":"31/12/1899"},{"id":"d9c08637-1640-49ea-b0a9-1f7e22331ba2","nome":"Mauricelia Barroso de Araujo","telefone":"","data":"","horario":"","mesa":"","pessoas":"","status":"Reserva","observacoes":"","nomePg":"Mauricelia Barroso de Araujo","valorPg":"200","dataPg":"2026-05-28","horaPg":"31/12/1899"},{"id":"ace23f5b-2d82-4fbd-9142-19a730efe9cd","nome":"Joao A Castelo Branco","telefone":"","data":"","horario":"","mesa":"","pessoas":"","status":"Reserva","observacoes":"","nomePg":"Joao A Castelo Branco","valorPg":"200","dataPg":"2026-05-27","horaPg":"31/12/1899"},{"id":"a60455f6-158d-488a-b0d2-f5bd56e2e2d3","nome":"Raiene Ramos Magalhaes","telefone":"","data":"","horario":"","mesa":"","pessoas":"","status":"Reserva","observacoes":"","nomePg":"Raiene Ramos Magalhaes","valorPg":"200","dataPg":"2026-05-28","horaPg":"31/12/1899"},{"id":"897fb179-1a21-4f29-8f10-99ec81065e85","nome":"Jose Guilherme Goncalves Lopes","telefone":"","data":"","horario":"","mesa":"","pessoas":"","status":"Reserva","observacoes":"","nomePg":"Jose Guilherme Goncalves Lopes","valorPg":"200","dataPg":"2026-05-29","horaPg":"31/12/1899"}]/*FIM_DADOS*/;
+    const MESAS_EMBUTIDAS = /*MESAS_JSON*/["Janela","Varanda","Jardim","Reservada","Salão","Terraço"]/*FIM_MESAS*/;
 
     // ─── Estado ─────────────────────────────────────────────────────────────
     const PER_PAGE = 20;
@@ -639,7 +929,206 @@ var o=[];var l=Array.isArray(e);for(f=n.s.c;f<=n.e.c;++f)s[f]=ya(f);for(var c=n.
       }
     } catch (e) { reservas = []; }
 
-    // ─── Elementos ──────────────────────────────────────────────────────────
+    // ─── Mesas ───────────────────────────────────────────────────────────────
+    const MESAS_PADRAO = ['Janela', 'Varanda', 'Jardim', 'Reservada', 'Salão', 'Terraço'];
+    let mesas = [];
+    let mesaEditingIdx = null;
+    let dragSrcIdx = null;
+
+    function loadMesas() {
+      try {
+        if (typeof MESAS_EMBUTIDAS !== 'undefined' && Array.isArray(MESAS_EMBUTIDAS) && MESAS_EMBUTIDAS.length > 0) {
+          mesas = MESAS_EMBUTIDAS;
+          localStorage.setItem('reservas_mesas', JSON.stringify(mesas));
+        } else {
+          const saved = localStorage.getItem('reservas_mesas');
+          mesas = saved ? JSON.parse(saved) : [...MESAS_PADRAO];
+        }
+      } catch(e) { mesas = [...MESAS_PADRAO]; }
+    }
+
+    function saveMesas() {
+      localStorage.setItem('reservas_mesas', JSON.stringify(mesas));
+      populateMesaSelect();
+    }
+
+    function populateMesaSelect() {
+      const sel = document.getElementById('mesa');
+      const current = sel.value;
+      sel.innerHTML = '<option value="">--</option>';
+      mesas.forEach(m => {
+        const opt = document.createElement('option');
+        opt.value = m; opt.textContent = m;
+        if (m === current) opt.selected = true;
+        sel.appendChild(opt);
+      });
+    }
+
+    function openMesasModal() {
+      mesaEditingIdx = null;
+      document.getElementById('mesaInput').value = '';
+      document.getElementById('btnConfirmMesa').textContent = '＋ Adicionar';
+      document.getElementById('btnCancelEdit').style.display = 'none';
+      renderMesasList();
+      const modal = document.getElementById('mesasModal');
+      modal.style.cssText = 'pointer-events:all;opacity:1;transition:opacity 0.2s;';
+      modal.classList.add('show');
+      setTimeout(() => document.getElementById('mesaInput').focus(), 100);
+    }
+
+    function closeMesasModal() {
+      const modal = document.getElementById('mesasModal');
+      modal.style.cssText = 'pointer-events:none;opacity:0;transition:opacity 0.2s;';
+      modal.classList.remove('show');
+      cancelMesaEdit();
+    }
+
+    function renderMesasList() {
+      const list = document.getElementById('mesasList');
+      const empty = document.getElementById('mesasEmpty');
+      const counter = document.getElementById('mesasCount');
+      list.innerHTML = '';
+      counter.textContent = mesas.length + ' mesa' + (mesas.length !== 1 ? 's' : '') + ' cadastrada' + (mesas.length !== 1 ? 's' : '');
+
+      if (!mesas.length) { empty.style.display = 'block'; return; }
+      empty.style.display = 'none';
+
+      mesas.forEach((mesa, idx) => {
+        const div = document.createElement('div');
+        div.className = 'mesa-item' + (mesaEditingIdx === idx ? ' editing-row' : '');
+        div.draggable = true;
+        div.dataset.idx = idx;
+
+        // Contar reservas usando essa mesa
+        const usoCount = reservas.filter(r => r.mesa === mesa).length;
+
+        div.innerHTML = `
+          <span class="mesa-drag-handle" title="Arrastar para reordenar">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><circle cx="9" cy="5" r="1" fill="currentColor" stroke="none"/><circle cx="15" cy="5" r="1" fill="currentColor" stroke="none"/><circle cx="9" cy="12" r="1" fill="currentColor" stroke="none"/><circle cx="15" cy="12" r="1" fill="currentColor" stroke="none"/><circle cx="9" cy="19" r="1" fill="currentColor" stroke="none"/><circle cx="15" cy="19" r="1" fill="currentColor" stroke="none"/></svg>
+          </span>
+          <span class="mesa-idx">${idx + 1}</span>
+          <span class="mesa-label">${escapeHTML(mesa)}</span>
+          ${usoCount > 0 ? `<span style="font-size:0.7rem;color:#64748b;background:#f1f5f9;border-radius:4px;padding:1px 6px;flex-shrink:0;">${usoCount} reserva${usoCount !== 1 ? 's' : ''}</span>` : ''}
+          <div class="mesa-actions">
+            <button class="mesa-action-btn edit" title="Renomear mesa" onclick="startEditMesa(${idx})">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="13" height="13"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+            </button>
+            <button class="mesa-action-btn del" title="${usoCount > 0 ? 'Excluir mesa (' + usoCount + ' reserva' + (usoCount!==1?'s':'') + ' serão afetadas)' : 'Excluir mesa'}" onclick="deleteMesa(${idx})">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="13" height="13"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
+            </button>
+          </div>`;
+
+        // Drag-and-drop
+        div.addEventListener('dragstart', e => {
+          dragSrcIdx = idx;
+          div.classList.add('dragging');
+          e.dataTransfer.effectAllowed = 'move';
+        });
+        div.addEventListener('dragend', () => {
+          div.classList.remove('dragging');
+          document.querySelectorAll('.mesa-item').forEach(el => el.classList.remove('drag-over'));
+          dragSrcIdx = null;
+        });
+        div.addEventListener('dragover', e => {
+          e.preventDefault();
+          e.dataTransfer.dropEffect = 'move';
+          document.querySelectorAll('.mesa-item').forEach(el => el.classList.remove('drag-over'));
+          div.classList.add('drag-over');
+        });
+        div.addEventListener('drop', e => {
+          e.preventDefault();
+          if (dragSrcIdx === null || dragSrcIdx === idx) return;
+          const moved = mesas.splice(dragSrcIdx, 1)[0];
+          mesas.splice(idx, 0, moved);
+          saveMesas();
+          renderMesasList();
+        });
+
+        list.appendChild(div);
+      });
+    }
+
+    function escapeHTML(str) {
+      return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+    }
+
+    function confirmMesaEdit() {
+      const input = document.getElementById('mesaInput');
+      const val = input.value.trim();
+      if (!val) { input.focus(); return; }
+
+      if (mesaEditingIdx !== null) {
+        // Renomear: atualiza reservas existentes
+        const oldName = mesas[mesaEditingIdx];
+        mesas[mesaEditingIdx] = val;
+        reservas.forEach(r => { if (r.mesa === oldName) r.mesa = val; });
+        localStorage.setItem('reservas_dia_namorados', JSON.stringify(reservas));
+        showToast(`✏️ Mesa "${oldName}" renomeada para "${val}"`, 'success');
+        cancelMesaEdit();
+      } else {
+        // Adicionar nova
+        if (mesas.map(m => m.toLowerCase()).includes(val.toLowerCase())) {
+          showToast('⚠️ Mesa já existe!', 'warning');
+          return;
+        }
+        mesas.push(val);
+        showToast(`✅ Mesa "${val}" adicionada!`, 'success');
+      }
+      input.value = '';
+      saveMesas();
+      renderMesasList();
+      input.focus();
+    }
+
+    function startEditMesa(idx) {
+      mesaEditingIdx = idx;
+      const input = document.getElementById('mesaInput');
+      input.value = mesas[idx];
+      document.getElementById('btnConfirmMesa').textContent = '✓ Salvar';
+      document.getElementById('btnCancelEdit').style.display = 'inline-flex';
+      renderMesasList();
+      input.focus();
+      input.select();
+    }
+
+    function cancelMesaEdit() {
+      mesaEditingIdx = null;
+      document.getElementById('mesaInput').value = '';
+      document.getElementById('btnConfirmMesa').textContent = '＋ Adicionar';
+      document.getElementById('btnCancelEdit').style.display = 'none';
+      renderMesasList();
+    }
+
+    function deleteMesa(idx) {
+      const name = mesas[idx];
+      const usoCount = reservas.filter(r => r.mesa === name).length;
+      const msg = usoCount > 0
+        ? `Excluir a mesa "${name}"?\n\n⚠️ Atenção: ${usoCount} reserva(s) usam esta mesa. O campo mesa dessas reservas ficará em branco.`
+        : `Excluir a mesa "${name}"?`;
+      if (!confirm(msg)) return;
+      if (usoCount > 0) {
+        reservas.forEach(r => { if (r.mesa === name) r.mesa = ''; });
+        localStorage.setItem('reservas_dia_namorados', JSON.stringify(reservas));
+        applyFilters();
+      }
+      mesas.splice(idx, 1);
+      saveMesas();
+      renderMesasList();
+      showToast(`🗑️ Mesa "${name}" excluída.`, 'error');
+    }
+
+    function resetMesasPadrao() {
+      if (!confirm('Restaurar a lista padrão de mesas?\n\nAs mesas personalizadas serão substituídas, mas as reservas existentes não serão alteradas.')) return;
+      mesas = [...MESAS_PADRAO];
+      saveMesas();
+      renderMesasList();
+      showToast('↺ Lista de mesas restaurada ao padrão.', 'success');
+    }
+
+    // Carrega mesas na inicialização
+    loadMesas();
+
+
     const form       = document.getElementById('reservaForm');
     const editId     = document.getElementById('editId');
     const formTitle  = document.getElementById('formTitle');
@@ -731,6 +1220,7 @@ var o=[];var l=Array.isArray(e);for(f=n.s.c;f<=n.e.c;++f)s[f]=ya(f);for(var c=n.
         data:        document.getElementById('data').value,
         horario:     document.getElementById('horario').value,
         mesa:        document.getElementById('mesa').value,
+        numMesa:     document.getElementById('numMesa').value.trim(),
         pessoas:     document.getElementById('pessoas').value,
         status:      document.getElementById('status').value,
         observacoes: document.getElementById('observacoes').value.trim(),
@@ -764,6 +1254,7 @@ var o=[];var l=Array.isArray(e);for(f=n.s.c;f<=n.e.c;++f)s[f]=ya(f);for(var c=n.
       document.getElementById('data').value          = r.data;
       document.getElementById('horario').value       = r.horario;
       document.getElementById('mesa').value          = r.mesa;
+      document.getElementById('numMesa').value       = r.numMesa || '';
       document.getElementById('pessoas').value       = r.pessoas;
       document.getElementById('status').value        = r.status;
       document.getElementById('observacoes').value   = r.observacoes || '';
@@ -800,23 +1291,54 @@ var o=[];var l=Array.isArray(e);for(f=n.s.c;f<=n.e.c;++f)s[f]=ya(f);for(var c=n.
 
     // ─── Filtros, Ordenação e Paginação ─────────────────────────────────────
 
+    let arquivoPendente = false; // declarado aqui para ser visível em save()
+
     function save(silent = false) {
       try {
         localStorage.setItem('reservas_dia_namorados', JSON.stringify(reservas));
       } catch (e) {
         showToast('Erro ao salvar localmente.', 'error');
       }
+      marcarPendente();
       applyFilters();
-      // Sincroniza automaticamente com Drive se conectado
-      if (driveToken && !silent) {
-        clearTimeout(window._driveSaveTimer);
-        window._driveSaveTimer = setTimeout(() => driveSave(true), 1500);
-      }
+      ghAutoSync();
     }
+
+    // ─── Controle de arquivo não salvo ───────────────────────────────────────
+
+    function marcarPendente() {
+      arquivoPendente = true;
+      document.getElementById('btnSalvarArq').classList.add('pendente');
+      document.getElementById('fileStatusBar').classList.add('show');
+    }
+
+    function marcarSalvo() {
+      arquivoPendente = false;
+      document.getElementById('btnSalvarArq').classList.remove('pendente');
+      document.getElementById('fileStatusBar').classList.remove('show');
+      document.getElementById('btnSalvarArqLabel').textContent = 'Salvar Arquivo';
+    }
+
+    // Ctrl+S / Cmd+S salva o arquivo
+    document.addEventListener('keydown', e => {
+      if ((e.ctrlKey || e.metaKey) && e.key === 's') {
+        e.preventDefault();
+        salvarArquivo();
+      }
+    });
+
+    // Aviso ao fechar a aba com dados pendentes no arquivo
+    window.addEventListener('beforeunload', e => {
+      if (arquivoPendente || formDirty) {
+        e.preventDefault();
+        e.returnValue = '';
+      }
+    });
 
     async function salvarArquivo() {
       try {
-        showToast('⏳ Preparando arquivo…', 'success');
+        const label = document.getElementById('btnSalvarArqLabel');
+        label.textContent = '⏳ Salvando…';
         let html;
         try {
           const res = await fetch(location.href);
@@ -825,9 +1347,14 @@ var o=[];var l=Array.isArray(e);for(f=n.s.c;f<=n.e.c;++f)s[f]=ya(f);for(var c=n.
           html = '<!DOCTYPE html>\n' + document.documentElement.outerHTML;
         }
         const json = JSON.stringify(reservas);
-        const updated = html.replace(
+        let updated = html.replace(
           /\/\*DADOS_JSON\*\/[\s\S]*?\/\*FIM_DADOS\*\//,
           '/*DADOS_JSON*/' + json + '/*FIM_DADOS*/'
+        );
+        const mesasJson = JSON.stringify(mesas);
+        updated = updated.replace(
+          /\/\*MESAS_JSON\*\/[\s\S]*?\/\*FIM_MESAS\*\//,
+          '/*MESAS_JSON*/' + mesasJson + '/*FIM_MESAS*/'
         );
         const blob = new Blob([updated], { type: 'text/html;charset=utf-8' });
         const a = document.createElement('a');
@@ -836,9 +1363,11 @@ var o=[];var l=Array.isArray(e);for(f=n.s.c;f<=n.e.c;++f)s[f]=ya(f);for(var c=n.
         a.download = evento + '.html';
         a.click();
         URL.revokeObjectURL(a.href);
-        showToast('💾 Arquivo salvo com ' + reservas.length + ' reserva(s)!', 'success');
+        marcarSalvo();
+        showToast('💾 Arquivo salvo com ' + reservas.length + ' reserva(s)! Substitua o arquivo antigo pelo novo.', 'success');
       } catch (e) {
         console.error(e);
+        document.getElementById('btnSalvarArqLabel').textContent = 'Salvar Arquivo';
         showToast('❌ Erro: ' + e.message, 'error');
       }
     }
@@ -923,6 +1452,7 @@ var o=[];var l=Array.isArray(e);for(f=n.s.c;f<=n.e.c;++f)s[f]=ya(f);for(var c=n.
             <td><span style="display:block">${r.nome}</span><span class="cell-sub">${fmtPhone(r.telefone)}</span></td>
             <td><span style="display:block">${fmtDate(r.data)}</span><span class="cell-sub">${r.horario}</span></td>
             <td>${r.mesa}${conflicts.length ? ' ⚠️' : ''}</td>
+            <td style="text-align:center;font-weight:600;font-size:0.85rem;">${r.numMesa || ''}</td>
             <td>${r.pessoas}</td>
             <td><span class="tag ${cls}">${r.status}</span></td>
             <td class="actions-cell no-print">
@@ -974,11 +1504,11 @@ var o=[];var l=Array.isArray(e);for(f=n.s.c;f<=n.e.c;++f)s[f]=ya(f);for(var c=n.
     // ─── Export CSV ──────────────────────────────────────────────────────────
     function exportCSV() {
       if (!reservas.length) return showToast('Nenhuma reserva para exportar.', 'warning');
-      const header = 'NomePg;ValorPg;dataPg;horaPg;Nome;Telefone;Data;Horário;Mesa;Pessoas;Status;Reserva;Observações\n';
+      const header = 'NomePg;ValorPg;dataPg;horaPg;Nome;Telefone;Data;Horário;Mesa;NºMesa;Pessoas;Status;Reserva;Observações\n';
       const rows = reservas.map(r =>
         [
           r.nomePg || '', r.valorPg || '', r.dataPg || '', r.horaPg || '',
-          r.nome, r.telefone, r.data, r.horario, r.mesa, r.pessoas, r.status, r.status, r.observacoes || ''
+          r.nome, r.telefone, r.data, r.horario, r.mesa, r.numMesa || '', r.pessoas, r.status, r.status, r.observacoes || ''
         ].map(v => `"${String(v).replace(/"/g, '""')}"`).join(';')
       ).join('\n');
       const bom = '\uFEFF';
@@ -1007,6 +1537,9 @@ var o=[];var l=Array.isArray(e);for(f=n.s.c;f<=n.e.c;++f)s[f]=ya(f);for(var c=n.
       horario:     'horario',
       horário:     'horario',
       mesa:        'mesa',
+      nmesa:       'numMesa',
+      numeromesa:  'numMesa',
+      nummesa:     'numMesa',
       pessoas:     'pessoas',
       status:      'status',
       reserva:     'status',   // alias
@@ -1159,7 +1692,7 @@ var o=[];var l=Array.isArray(e);for(f=n.s.c;f<=n.e.c;++f)s[f]=ya(f);for(var c=n.
 
           save();
           // Auto-sync após importação
-          if (driveToken) { clearTimeout(window._driveSaveTimer); window._driveSaveTimer = setTimeout(() => driveSave(true), 2000); }
+          ghAutoSync();
 
           const partes = [];
           if (atualizados) partes.push(`${atualizados} reserva(s) atualizada(s) com pagamento`);
@@ -1301,14 +1834,6 @@ var o=[];var l=Array.isArray(e);for(f=n.s.c;f<=n.e.c;++f)s[f]=ya(f);for(var c=n.
       draftTimer = setTimeout(saveDraft, 600); // debounce 600ms
     }
 
-    // Aviso ao fechar/recarregar a aba com formulário preenchido
-    window.addEventListener('beforeunload', e => {
-      if (formDirty) {
-        e.preventDefault();
-        e.returnValue = '';
-      }
-    });
-
     // Verifica rascunho ao abrir
     function checkForDraft() {
       try {
@@ -1326,233 +1851,238 @@ var o=[];var l=Array.isArray(e);for(f=n.s.c;f<=n.e.c;++f)s[f]=ya(f);for(var c=n.
       } catch (e) {}
     }
 
-    // ─── Google Drive Sync ───────────────────────────────────────────────────
-    // Usa Google Identity Services (OAuth2 PKCE) — sem backend, funciona em file://
-    const DRIVE_FILE_NAME = 'reservas_sistema.json';
-    const DRIVE_SCOPE = 'https://www.googleapis.com/auth/drive.file';
-    // ⚠️ Substitua pelo seu Client ID do Google Cloud Console
-    const DRIVE_CLIENT_ID = '734590998733-6tmti59fa5sg7jciaalh2t78ptjv385b.apps.googleusercontent.com';
+    // ─── GitHub Sync ─────────────────────────────────────────────────────────
+    const GH_REPO  = 'gecinebox-boop/reservas';
+    const GH_FILE  = 'index.html';
+    const GH_API   = `https://api.github.com/repos/${GH_REPO}/contents/${GH_FILE}`;
+    const GH_TOKEN_KEY = 'gh_pat_reservas';
 
-    let driveToken = null;
-    let driveFileId = null;
+    let ghToken = null;
+    let ghFileSha = null; // SHA do arquivo atual no repo (necessário para update)
 
-    function driveShowModal() {
-      const modal = document.getElementById('driveModal');
-      modal.style.cssText = 'pointer-events:all;opacity:1;transition:opacity 0.2s;position:fixed;inset:0;background:rgba(0,0,0,0.45);display:flex;align-items:center;justify-content:center;z-index:200;';
-      updateDriveModal();
+    function ghShowModal() {
+      ghToken = localStorage.getItem(GH_TOKEN_KEY) || null;
+      const modal = document.getElementById('ghModal');
+      modal.style.cssText = 'pointer-events:all;opacity:1;transition:opacity 0.2s;';
+      modal.classList.add('show');
+      ghRenderModal();
     }
 
-    function driveLogin() {
-      if (!DRIVE_CLIENT_ID) {
-        driveShowModal();
-        document.getElementById('driveStatus').innerHTML =
-          '<div class="drive-status-row"><span class="drive-dot err"></span>Client ID não configurado.</div>' +
-          '<p style="margin-top:8px;font-size:0.78rem;color:#64748b">Veja as instruções abaixo para obter seu Client ID gratuito.</p>' +
-          driveInstructions();
-        document.getElementById('drivePrimaryBtn').style.display = 'none';
+    function ghCloseModal() {
+      const modal = document.getElementById('ghModal');
+      modal.style.cssText = 'pointer-events:none;opacity:0;transition:opacity 0.2s;';
+      modal.classList.remove('show');
+    }
+
+    function ghRenderModal() {
+      const tokenSec     = document.getElementById('ghTokenSection');
+      const connectedSec = document.getElementById('ghConnectedSection');
+      const statusRow    = document.getElementById('ghStatusRow');
+      if (ghToken) {
+        tokenSec.style.display     = 'none';
+        connectedSec.style.display = 'block';
+        const last = localStorage.getItem('gh_last_push');
+        if (last) {
+          document.getElementById('ghLastSaveRow').style.display = 'flex';
+          document.getElementById('ghLastSaveLabel').textContent = 'Último envio: ' + last;
+        }
+        statusRow.innerHTML = '<span style="color:#15803d;font-weight:600;">✓ Token configurado</span> — pronto para sincronizar.';
+      } else {
+        tokenSec.style.display     = 'block';
+        connectedSec.style.display = 'none';
+        statusRow.innerHTML = 'Configure seu token do GitHub para salvar diretamente no repositório.';
+      }
+    }
+
+    function ghToggleToken() {
+      const inp = document.getElementById('ghTokenInput');
+      inp.type = inp.type === 'password' ? 'text' : 'password';
+    }
+
+    function ghSaveToken() {
+      const val = document.getElementById('ghTokenInput').value.trim();
+      if (!val || !val.startsWith('gh')) {
+        showToast('⚠️ Token inválido. Deve começar com "gh"', 'warning');
         return;
       }
-      driveShowModal();
+      ghToken = val;
+      localStorage.setItem(GH_TOKEN_KEY, val);
+      document.getElementById('ghTokenInput').value = '';
+      document.getElementById('btnGHLabel').textContent = '✓ GitHub';
+      showToast('🔑 Token salvo! Agora clique "Enviar para GitHub".', 'success');
+      ghRenderModal();
     }
 
-    function driveInstructions() {
-      return `<div style="margin-top:10px;background:#f8fafc;border-radius:6px;padding:10px;font-size:0.75rem;color:#334155;line-height:1.6">
-        <b>Como obter o Client ID (gratuito):</b><br>
-        1. Acesse <a href="https://console.cloud.google.com" target="_blank">console.cloud.google.com</a><br>
-        2. Crie um projeto → APIs → Ativar <b>Google Drive API</b><br>
-        3. Credenciais → Criar → <b>ID do cliente OAuth</b> → Aplicativo da Web<br>
-        4. Em "Origens autorizadas" adicione: <code>null</code> (para file://)<br>
-        5. Copie o Client ID e cole em <code>DRIVE_CLIENT_ID</code> no HTML
-      </div>`;
+    function ghClearToken() {
+      if (!confirm('Remover token do GitHub? Você precisará inserir novamente para sincronizar.')) return;
+      ghToken = null;
+      ghFileSha = null;
+      localStorage.removeItem(GH_TOKEN_KEY);
+      localStorage.removeItem('gh_last_push');
+      document.getElementById('btnGHLabel').textContent = 'GitHub';
+      ghRenderModal();
+      showToast('🗑️ Token removido.', 'warning');
     }
 
-    function updateDriveModal() {
-      const status = document.getElementById('driveStatus');
-      const btn = document.getElementById('drivePrimaryBtn');
-      if (driveToken) {
-        status.innerHTML = '<div class="drive-status-row"><span class="drive-dot ok"></span>Conectado ao Google Drive</div>' +
-          (driveFileId ? `<div class="drive-status-row"><span class="drive-dot ok"></span>Arquivo: ${DRIVE_FILE_NAME}</div>` : '');
-        btn.textContent = '☁️ Sincronizar agora';
-        btn.onclick = () => { driveSave(); document.getElementById('driveModal').style.cssText='pointer-events:none;opacity:0;'; };
-        document.getElementById('btnDriveLabel').textContent = '✓ Drive';
-      } else {
-        status.innerHTML = '<div class="drive-status-row"><span class="drive-dot off"></span>Não conectado</div><p style="margin-top:6px;font-size:0.78rem;color:#64748b">Clique em "Entrar" para conectar sua conta Google e sincronizar os dados automaticamente.</p>';
-        btn.textContent = '🔑 Entrar com Google';
-        btn.onclick = driveAuth;
-        document.getElementById('btnDriveLabel').textContent = 'Google Drive';
-      }
+    // Busca o SHA atual do arquivo (necessário para o PUT de update)
+    async function ghGetSha() {
+      if (ghFileSha) return ghFileSha;
+      try {
+        const res = await fetch(GH_API, {
+          headers: { Authorization: 'token ' + ghToken, Accept: 'application/vnd.github+json' }
+        });
+        if (res.ok) {
+          const data = await res.json();
+          ghFileSha = data.sha;
+          return ghFileSha;
+        }
+      } catch(e) {}
+      return null;
     }
 
-    function driveAction() { if (driveToken) { driveSave(); document.getElementById('driveModal').style.cssText='pointer-events:none;opacity:0;'; } else { document.getElementById('driveModal').style.cssText='pointer-events:none;opacity:0;'; driveAuth(); } }
-
-    function driveAuth() {
-      if (!DRIVE_CLIENT_ID) return;
-      // Usa a URL atual sem hash/query como redirect_uri
-      const redirectUri = location.origin + location.pathname;
-      const params = new URLSearchParams({
-        client_id: DRIVE_CLIENT_ID,
-        redirect_uri: redirectUri,
-        response_type: 'token',
-        scope: DRIVE_SCOPE,
-        include_granted_scopes: 'true',
-        prompt: 'select_account',
-      });
-      // Redireciona na mesma aba — token volta no hash da URL
-      sessionStorage.setItem('drive_pre_auth', JSON.stringify(reservas));
-      window.location.href = 'https://accounts.google.com/o/oauth2/v2/auth?' + params;
-    }
-
-    function driveCheckAuthReturn() {
-      // Verifica se voltou de uma autenticação OAuth (token no hash)
-      const hash = window.location.hash;
-      if (hash && hash.includes('access_token')) {
-        const p = new URLSearchParams(hash.slice(1));
-        driveToken = p.get('access_token');
-        localStorage.setItem('drive_token', driveToken);
-        // Limpa o hash da URL sem recarregar
-        history.replaceState(null, '', window.location.pathname);
-        // Restaura dados que estavam antes do login
+    // Envia o arquivo atualizado para o GitHub
+    async function ghPush() {
+      if (!ghToken) { ghShowModal(); return; }
+      const btn = document.getElementById('ghPushBtn');
+      btn.textContent = '⏳ Enviando…';
+      btn.disabled = true;
+      try {
+        // Monta o HTML atualizado com os dados embutidos
+        let html;
         try {
-          const pre = sessionStorage.getItem('drive_pre_auth');
-          if (pre) {
-            const preData = JSON.parse(pre);
-            if (Array.isArray(preData) && preData.length > 0) {
-              reservas = preData;
-              localStorage.setItem('reservas_dia_namorados', JSON.stringify(reservas));
-              applyFilters();
-              renderSummary();
-            }
-            sessionStorage.removeItem('drive_pre_auth');
-          }
-        } catch(e) {}
-        showToast('✅ Google Drive conectado!', 'success');
-        document.getElementById('btnDriveLabel').textContent = '✓ Drive';
-        driveLoad();
-        return true;
-      }
-      return false;
-    }
-
-    async function driveLoad() {
-      if (!driveToken) return;
-      try {
-        document.getElementById('driveStatus').innerHTML = '<div class="drive-status-row"><span class="drive-dot spin"></span>Carregando do Drive…</div>';
-        // Busca o arquivo pelo nome
-        const search = await fetch(
-          `https://www.googleapis.com/drive/v3/files?q=name='${DRIVE_FILE_NAME}' and trashed=false&fields=files(id,name,modifiedTime)`,
-          { headers: { Authorization: 'Bearer ' + driveToken } }
-        );
-        const { files } = await search.json();
-        if (files && files.length > 0) {
-          driveFileId = files[0].id;
-          const fileRes = await fetch(
-            `https://www.googleapis.com/drive/v3/files/${driveFileId}?alt=media`,
-            { headers: { Authorization: 'Bearer ' + driveToken } }
-          );
-          const data = await fileRes.json();
-          if (Array.isArray(data)) {
-            reservas = data;
-            localStorage.setItem('reservas_dia_namorados', JSON.stringify(reservas));
-            applyFilters();
-            renderSummary();
-            showToast('☁️ ' + reservas.length + ' reserva(s) carregada(s) do Drive!', 'success');
-          }
-        } else {
-          showToast('☁️ Nenhum arquivo no Drive ainda — salve para criar.', 'success');
+          const res = await fetch(location.href);
+          html = await res.text();
+        } catch(e) {
+          html = '<!DOCTYPE html>\n' + document.documentElement.outerHTML;
         }
-        updateDriveModal();
-      } catch(e) {
-        if (e.message && e.message.includes('401')) {
-          driveToken = null;
-          localStorage.removeItem('drive_token');
-          showToast('⚠️ Sessão expirada — faça login novamente.', 'warning');
-        } else {
-          showToast('⚠️ Erro ao carregar do Drive: ' + e.message, 'warning');
-        }
-        updateDriveModal();
-      }
-    }
+        let updated = html
+          .replace(/\/\*DADOS_JSON\*\/[\s\S]*?\/\*FIM_DADOS\*\//, '/*DADOS_JSON*/' + JSON.stringify(reservas) + '/*FIM_DADOS*/')
+          .replace(/\/\*MESAS_JSON\*\/[\s\S]*?\/\*FIM_MESAS\*\//, '/*MESAS_JSON*/' + JSON.stringify(mesas) + '/*FIM_MESAS*/');
 
-    async function driveSave(silent = false) {
-      if (!driveToken) { driveShowModal(); return; }
-      try {
-        if (!silent) showToast('⏳ Salvando no Drive…', 'success');
-        const body = JSON.stringify(reservas);
-        const blob = new Blob([body], { type: 'application/json' });
+        // Base64 encode
+        const b64 = btoa(unescape(encodeURIComponent(updated)));
 
-        let res;
-        if (driveFileId) {
-          // Atualiza arquivo existente
-          res = await fetch(
-            `https://www.googleapis.com/upload/drive/v3/files/${driveFileId}?uploadType=media`,
-            { method: 'PATCH', headers: { Authorization: 'Bearer ' + driveToken, 'Content-Type': 'application/json' }, body }
-          );
-        } else {
-          // Cria novo arquivo
-          const meta = JSON.stringify({ name: DRIVE_FILE_NAME, mimeType: 'application/json' });
-          const form = new FormData();
-          form.append('metadata', new Blob([meta], { type: 'application/json' }));
-          form.append('file', blob);
-          res = await fetch(
-            'https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&fields=id',
-            { method: 'POST', headers: { Authorization: 'Bearer ' + driveToken }, body: form }
-          );
-          const created = await res.clone().json();
-          driveFileId = created.id;
-        }
+        // Busca SHA atual
+        const sha = await ghGetSha();
+
+        const payload = {
+          message: `Atualizar reservas — ${new Date().toLocaleString('pt-BR')} (${reservas.length} reservas)`,
+          content: b64,
+          ...(sha ? { sha } : {})
+        };
+
+        const res = await fetch(GH_API, {
+          method: 'PUT',
+          headers: {
+            Authorization: 'token ' + ghToken,
+            Accept: 'application/vnd.github+json',
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(payload)
+        });
 
         if (res.ok) {
-          if (!silent) showToast('☁️ Salvo no Drive com ' + reservas.length + ' reserva(s)!', 'success'); else showSyncIndicator();
-          document.getElementById('btnDriveLabel').textContent = '✓ Drive';
+          const data = await res.json();
+          ghFileSha = data.content.sha;
+          const now = new Date().toLocaleString('pt-BR');
+          localStorage.setItem('gh_last_push', now);
+          marcarSalvo();
+          document.getElementById('btnGHLabel').textContent = '✓ GitHub';
+          showToast(`☁️ Enviado para GitHub! ${reservas.length} reserva(s) salvas.`, 'success');
+          ghRenderModal();
         } else {
           const err = await res.json();
-          if (err.error && err.error.code === 401) {
-            driveToken = null;
-            localStorage.removeItem('drive_token');
-            showToast('⚠️ Sessão expirada — faça login novamente.', 'warning');
-            updateDriveModal();
+          if (res.status === 401) {
+            showToast('⚠️ Token inválido ou expirado. Reconfigure nas configurações do GitHub.', 'warning');
+            ghClearToken();
           } else {
-            showToast('⚠️ Erro ao salvar no Drive.', 'warning');
+            showToast('⚠️ Erro ao enviar: ' + (err.message || res.status), 'warning');
           }
         }
       } catch(e) {
-        showToast('⚠️ Erro: ' + e.message, 'warning');
+        showToast('❌ Erro: ' + e.message, 'error');
+      } finally {
+        btn.textContent = '☁️ Enviar para GitHub';
+        btn.disabled = false;
       }
     }
 
-    // Salva no Drive automaticamente após cada save()
-    function saveAndSync() {
-      save();
-      if (driveToken) driveSave();
+    // Carrega dados do GitHub (sobrescreve localStorage)
+    async function ghPull() {
+      if (!ghToken) { ghShowModal(); return; }
+      const btn = document.getElementById('ghPullBtn');
+      btn.textContent = '⏳ Carregando…';
+      btn.disabled = true;
+      try {
+        const res = await fetch(GH_API, {
+          headers: { Authorization: 'token ' + ghToken, Accept: 'application/vnd.github+json' }
+        });
+        if (!res.ok) throw new Error('Status ' + res.status);
+        const data = await res.json();
+        ghFileSha = data.sha;
+        // Decodifica o conteúdo
+        const html = decodeURIComponent(escape(atob(data.content.replace(/\n/g, ''))));
+        // Extrai os dados embutidos
+        const dadosMatch = html.match(/\/\*DADOS_JSON\*\/([\s\S]*?)\/\*FIM_DADOS\*\//);
+        const mesasMatch = html.match(/\/\*MESAS_JSON\*\/([\s\S]*?)\/\*FIM_MESAS\*\//);
+        let importou = false;
+        if (dadosMatch && dadosMatch[1] && dadosMatch[1] !== 'null') {
+          try {
+            const imported = JSON.parse(dadosMatch[1]);
+            if (Array.isArray(imported) && imported.length > 0) {
+              reservas = imported;
+              localStorage.setItem('reservas_dia_namorados', JSON.stringify(reservas));
+              importou = true;
+            }
+          } catch(e) {}
+        }
+        if (mesasMatch && mesasMatch[1] && mesasMatch[1] !== 'null') {
+          try {
+            const importedMesas = JSON.parse(mesasMatch[1]);
+            if (Array.isArray(importedMesas) && importedMesas.length > 0) {
+              mesas = importedMesas;
+              saveMesas();
+            }
+          } catch(e) {}
+        }
+        applyFilters();
+        renderSummary();
+        marcarSalvo();
+        showToast(importou
+          ? `⬇️ Carregado do GitHub! ${reservas.length} reserva(s).`
+          : '⬇️ Arquivo carregado (sem reservas embutidas ainda).', 'success');
+      } catch(e) {
+        showToast('⚠️ Erro ao carregar: ' + e.message, 'warning');
+      } finally {
+        btn.textContent = '⬇ Carregar';
+        btn.disabled = false;
+      }
     }
 
-    function showSyncIndicator() {
-      const label = document.getElementById('btnDriveLabel');
-      if (label) { label.textContent = '✓ Drive'; }
+    // Auto-push após save se token configurado
+    function ghAutoSync() {
+      if (ghToken) {
+        clearTimeout(window._ghSyncTimer);
+        window._ghSyncTimer = setTimeout(() => ghPush(), 3000);
+      }
     }
 
-    // Tenta restaurar token salvo
-    function driveRestoreSession() {
-      const saved = localStorage.getItem('drive_token');
-      if (saved && DRIVE_CLIENT_ID) {
-        driveToken = saved;
-        document.getElementById('btnDriveLabel').textContent = '✓ Drive';
-        driveLoad();
+    // Restaura estado do token ao carregar
+    function ghRestoreSession() {
+      const saved = localStorage.getItem(GH_TOKEN_KEY);
+      if (saved) {
+        ghToken = saved;
+        document.getElementById('btnGHLabel').textContent = '✓ GitHub';
       }
     }
 
     // ─── Init ────────────────────────────────────────────────────────────────
-    // Verifica se voltou do login Google
-    if (!driveCheckAuthReturn()) {
-      applyFilters();
-      updateEventTitle();
-      checkForDraft();
-      driveRestoreSession();
-    } else {
-      applyFilters();
-      updateEventTitle();
-      checkForDraft();
-    }
+    populateMesaSelect();
+    ghRestoreSession();
+    applyFilters();
+    updateEventTitle();
+    checkForDraft();
   </script>
-</body>
-</html>
+
+
+</body></html>
